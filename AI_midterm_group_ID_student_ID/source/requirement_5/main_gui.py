@@ -265,8 +265,7 @@ class SokobanGUI:
 if __name__ == "__main__":
     import time
 
-    from a_star import a_star_search
-    from algorithms import uniform_cost_search
+    from algorithms import a_star_search, uniform_cost_search
     from heuristic import precompute_maze_distances
 
     game = GameLogic("example_map.txt")
