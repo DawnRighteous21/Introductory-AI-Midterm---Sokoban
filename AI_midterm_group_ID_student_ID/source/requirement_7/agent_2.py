@@ -1,6 +1,11 @@
 import heapq
 import itertools
+import time
 from collections import deque
+
+# Global caches for static BFS distances to avoid recalculating per state
+GLOBAL_TARGET_DISTANCES = {}
+GLOBAL_WALLS_HASH = None
 
 
 class LocalState:
@@ -15,7 +20,32 @@ class LocalState:
         return hash((self.p, self.boxes))
 
 
+def precompute_target_distances(targets, walls):
+    global GLOBAL_TARGET_DISTANCES, GLOBAL_WALLS_HASH
+    walls_hash = hash(frozenset(walls))
+
+    # Skip if we have already precomputed distances for this specific map layout
+    if GLOBAL_WALLS_HASH == walls_hash and len(GLOBAL_TARGET_DISTANCES) == len(targets):
+        return
+
+    GLOBAL_WALLS_HASH = walls_hash
+    GLOBAL_TARGET_DISTANCES.clear()
+
+    for t in targets:
+        distances = {t: 0}
+        queue = deque([t])
+        while queue:
+            curr = queue.popleft()
+            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nxt = (curr[0] + dx, curr[1] + dy)
+                if nxt not in walls and nxt not in distances:
+                    distances[nxt] = distances[curr] + 1
+                    queue.append(nxt)
+        GLOBAL_TARGET_DISTANCES[t] = distances
+
+
 def get_action(state, targets, walls, algo):
+    start_time = time.time()
     my_pos = state.p2
     opp_pos = state.p1
 
@@ -30,10 +60,21 @@ def get_action(state, targets, walls, algo):
     if not pushable_boxes or not open_targets:
         return "Wait"
 
+    # Ensure distances are computed before search begins
+    precompute_target_distances(targets, walls)
+
     init_state = LocalState(my_pos, pushable_boxes)
-    # Pass the blocked_action tracker to the search function
     init_state.blocked_action = getattr(state, "blocked_action", None)
-    return search(init_state, targets, opp_targets, open_targets, effective_walls, algo)
+
+    return search(
+        init_state,
+        targets,
+        opp_targets,
+        open_targets,
+        effective_walls,
+        algo,
+        start_time,
+    )
 
 
 def get_successors(local_state, walls):
@@ -49,7 +90,7 @@ def get_successors(local_state, walls):
         nx, ny = local_state.p[0] + dx, local_state.p[1] + dy
         np = (nx, ny)
 
-        # Apply penalty if Khang's collision engine repeatedly blocked this move
+        # Apply penalty if the collision engine repeatedly blocked this move
         cost = (
             100
             if hasattr(local_state, "blocked_action")
@@ -75,27 +116,13 @@ def heuristic(local_state, open_targets, walls):
     if len(boxes) != len(targets):
         return float("inf")
 
-    # Calculate obstacle-avoiding distance using BFS
+    # Look up precomputed static distances instead of running BFS per state
     dist_matrix = []
     for b in boxes:
-        distances = {}
-        queue = deque([(b, 0)])
-        explored = {b}
-
-        while queue:
-            curr, dist = queue.popleft()
-            if curr in targets:
-                distances[curr] = dist
-            if len(distances) == len(targets):
-                break
-
-            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-                nxt = (curr[0] + dx, curr[1] + dy)
-                if nxt not in walls and nxt not in explored:
-                    explored.add(nxt)
-                    queue.append((nxt, dist + 1))
-
-        row = [distances.get(t, float("inf")) for t in targets]
+        row = []
+        for t in targets:
+            d = GLOBAL_TARGET_DISTANCES.get(t, {}).get(b, float("inf"))
+            row.append(d)
         dist_matrix.append(row)
 
     # Evaluate box-to-target permutations for minimum cost
@@ -108,7 +135,7 @@ def heuristic(local_state, open_targets, walls):
     return min_cost
 
 
-def search(init_state, all_targets, opp_targets, open_targets, walls, algo):
+def search(init_state, all_targets, opp_targets, open_targets, walls, algo, start_time):
     frontier = []
     initial_h = heuristic(init_state, open_targets, walls) if algo == "A*" else 0
 
@@ -122,8 +149,18 @@ def search(init_state, all_targets, opp_targets, open_targets, walls, algo):
     init_boxes_on_targets = init_state.boxes & all_targets
     init_opp_boxes = init_state.boxes & opp_targets
 
+    best_action = "Wait"
+
     while frontier:
+        # Halt execution at 0.95 seconds to safely return before GUI force-wait timeout
+        if time.time() - start_time > 0.95:
+            return best_action
+
         priority, cost, _, current_state, first_action = heapq.heappop(frontier)
+
+        # Continuously track the first promising action pulled from priority queue
+        if first_action and best_action == "Wait":
+            best_action = first_action
 
         curr_boxes_on_targets = current_state.boxes & all_targets
         curr_opp_boxes = current_state.boxes & opp_targets
@@ -148,9 +185,13 @@ def search(init_state, all_targets, opp_targets, open_targets, walls, algo):
                     prio = new_cost + h if algo == "A*" else h
                     root_action = first_action if first_action else action
 
+                    # Store immediate improvement as fallback action
+                    if h < initial_h and best_action == "Wait":
+                        best_action = root_action
+
                     heapq.heappush(
                         frontier, (prio, new_cost, counter, successor, root_action)
                     )
                     counter += 1
 
-    return "Wait"
+    return best_action
