@@ -229,7 +229,7 @@ class CompetitiveGUI:
         self.state = "MENU"
         self.algo1 = "A*"
         self.algo2 = "GBFS"
-        self.step_limit = 25  # CHANGED
+        self.step_limit = 25
 
         # Menu Layout configuration
         cx = self.screen_width // 2
@@ -240,7 +240,7 @@ class CompetitiveGUI:
         self.btn_a2_gbfs = pygame.Rect(cx + 30, cy - 20, 70, 35)
         self.btn_minus = pygame.Rect(cx - 50, cy + 40, 35, 35)
         self.btn_plus = pygame.Rect(cx + 65, cy + 40, 35, 35)
-        self.btn_start = pygame.Rect(cx - 60, cy + 110, 120, 50)  # CHANGED
+        self.btn_start = pygame.Rect(cx - 60, cy + 110, 120, 50)
 
     def draw_tile(self, x, y, color, is_circle=False, padding=0):
         rect = (
@@ -304,7 +304,7 @@ class CompetitiveGUI:
             (80, 200, 120) if self.btn_start.collidepoint(mouse_pos) else (50, 160, 90)
         )
         pygame.draw.rect(self.screen, start_color, self.btn_start, border_radius=8)
-        start_t = self.font.render("START", True, (255, 255, 255))  # TEXT VERIFIED
+        start_t = self.font.render("START", True, (255, 255, 255))
         self.screen.blit(start_t, start_t.get_rect(center=self.btn_start.center))
 
         pygame.display.flip()
