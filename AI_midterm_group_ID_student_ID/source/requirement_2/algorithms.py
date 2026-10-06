@@ -25,7 +25,6 @@ class SokobanState:
 
 
 def parse_map(layout_str):
-    # Parse map into formal components
     lines = layout_str.strip("\r\n").split("\n")
     height = len(lines)
     width = max(len(line) for line in lines)
@@ -54,7 +53,6 @@ def parse_map(layout_str):
 
 
 def load_map_file(filename="example_map.txt"):
-    # Read map file safely relative to script directory
     base_dir = os.path.dirname(__file__)
     map_path = os.path.join(base_dir, filename)
     with open(map_path, "r", encoding="utf-8") as file:
@@ -62,7 +60,6 @@ def load_map_file(filename="example_map.txt"):
 
 
 def get_successors(state, walls):
-    # Apply orthogonal actions and box-pushing mechanics
     actions = {"North": (0, -1), "South": (0, 1), "East": (1, 0), "West": (-1, 0)}
 
     for action_name, (dx, dy) in actions.items():
@@ -84,7 +81,6 @@ def get_successors(state, walls):
 
 
 def uniform_cost_search(initial_state, targets, walls):
-    # Solve Sokoban using UCS
     frontier = []
     heapq.heappush(frontier, (0, 0, initial_state, []))
 
@@ -114,7 +110,6 @@ def uniform_cost_search(initial_state, targets, walls):
 
 
 def a_star_search(initial_state, targets, walls, dist_table):
-    # Solve Sokoban using A* with Bipartite Matching Heuristic
     initial_h = bipartite_matching_heuristic(initial_state, targets, walls, dist_table)
     frontier = []
     heapq.heappush(frontier, (initial_h, 0, 0, initial_state, []))
@@ -152,7 +147,6 @@ def a_star_search(initial_state, targets, walls, dist_table):
 
 
 if __name__ == "__main__":
-    # Test script loading and running
     layout_content = load_map_file("example_map.txt")
     p0, b0, targets, walls, width, height = parse_map(layout_content)
     init_state = SokobanState(p0, b0)

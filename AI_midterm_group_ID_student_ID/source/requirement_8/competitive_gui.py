@@ -4,7 +4,6 @@ import time
 
 import pygame
 
-# Route to requirement_7
 current_dir = os.path.dirname(os.path.abspath(__file__))
 source_dir = os.path.dirname(current_dir)
 sys.path.append(os.path.join(source_dir, "requirement_7"))
@@ -225,13 +224,11 @@ class CompetitiveGUI:
         self.font = pygame.font.SysFont("Arial", 20, bold=True)
         self.title_font = pygame.font.SysFont("Arial", 40, bold=True)
 
-        # State tracking
         self.state = "MENU"
         self.algo1 = "A*"
         self.algo2 = "GBFS"
         self.step_limit = 25
 
-        # Menu Layout configuration
         cx = self.screen_width // 2
         cy = self.screen_height // 2
         self.btn_a1_astar = pygame.Rect(cx - 50, cy - 80, 70, 35)
@@ -268,7 +265,6 @@ class CompetitiveGUI:
             title_surf, title_surf.get_rect(center=(self.screen_width // 2, 80))
         )
 
-        # Labels
         lbl_p1 = self.font.render("Agent 1 (Blue):", True, (100, 180, 255))
         lbl_p2 = self.font.render("Agent 2 (Red):", True, (255, 100, 100))
         lbl_steps = self.font.render("Step Limit:", True, (255, 255, 255))
@@ -279,7 +275,6 @@ class CompetitiveGUI:
         self.screen.blit(lbl_p2, (cx - 220, cy - 15))
         self.screen.blit(lbl_steps, (cx - 220, cy + 45))
 
-        # Helper for drawing toggle buttons
         def draw_btn(rect, text, is_active, color_active):
             color = color_active if is_active else (80, 80, 80)
             pygame.draw.rect(self.screen, color, rect, border_radius=5)
@@ -298,7 +293,6 @@ class CompetitiveGUI:
         steps_surf = self.font.render(str(self.step_limit), True, (255, 255, 255))
         self.screen.blit(steps_surf, steps_surf.get_rect(center=(cx + 25, cy + 57)))
 
-        # Start button
         mouse_pos = pygame.mouse.get_pos()
         start_color = (
             (80, 200, 120) if self.btn_start.collidepoint(mouse_pos) else (50, 160, 90)

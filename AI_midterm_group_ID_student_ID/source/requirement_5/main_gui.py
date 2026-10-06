@@ -3,7 +3,6 @@ import sys
 import time
 import pygame
 
-# Set up paths to import the algorithm logic safely
 current_dir = os.path.dirname(os.path.abspath(__file__))
 source_dir = os.path.dirname(current_dir)
 sys.path.append(os.path.join(source_dir, "requirement_2"))
@@ -179,11 +178,9 @@ class SokobanGUI:
         self.font = pygame.font.SysFont("Arial", 20)
         self.title_font = pygame.font.SysFont("Arial", 40, bold=True)
 
-        # Application State: MENU, LOADING, PLAYING
         self.state = "MENU"
         self.solve_stats = ""
 
-        # Menu Button Definitions (x, y, w, h, text, action_id)
         btn_w, btn_h = 300, 50
         cx = self.screen_width // 2 - btn_w // 2
         cy = self.screen_height // 2
@@ -290,7 +287,6 @@ class SokobanGUI:
                 dx, dy = action_map[action]
                 self.game.execute_move(dx, dy)
 
-            # Rewind to start for user playback
             while self.game.history_index > 0:
                 self.game.move_backward()
 

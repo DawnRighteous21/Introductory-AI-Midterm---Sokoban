@@ -112,7 +112,6 @@ def bipartite_matching_heuristic(state, targets, walls, dist_table):
 
     cost_matrix = []
     for box in boxes:
-        # Check corner deadlock
         if is_deadlock(box, walls, targets):
             return float('inf')
 
