@@ -1,6 +1,13 @@
 import heapq
 import os
+import sys
 import time
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+mother_dir = os.path.dirname(current_dir)
+req4_dir = os.path.join(mother_dir, "requirement_4")
+
+sys.path.append(req4_dir)
 
 from heuristic import bipartite_matching_heuristic, precompute_maze_distances
 
